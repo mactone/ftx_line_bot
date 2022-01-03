@@ -8,10 +8,21 @@ from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage
 
+# FTX
+from ftx import FtxClient
+from utilityFunctions
+from ftxQuery import getSpotMarginProfit
+
 app = Flask(__name__)
 
 line_bot_api = LineBotApi(os.environ.get("CHANNEL_ACCESS_TOKEN"))
 handler = WebhookHandler(os.environ.get("CHANNEL_SECRET"))
+
+# FTX
+subaccount = FtxClient(os.environ.get("API_KEY"),
+                       os.environ.get("API_SECRET"),
+                       os.environ.get("SUBACCOUNT_NAME"))
+coinlist = ['SOL-PERP','FTM-PERP','FTT-PERP'] #套利幣種
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -35,6 +46,9 @@ def callback():
 def handle_message(event):
     get_message = event.message.text
 
+    if(get_message=="查詢套利收益"):
+        reply=getSpotMarginProfit(subaccount,coinlist)
+    else:
+        reply = TextSendMessage(text=f"{get_message}")
     # Send To Line
-    reply = TextSendMessage(text=f"{get_message}")
     line_bot_api.reply_message(event.reply_token, reply)
